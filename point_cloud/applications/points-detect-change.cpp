@@ -51,10 +51,12 @@
 #include <comma/math/compare.h>
 #include <comma/string/string.h>
 #include <comma/visiting/traits.h>
-#include <snark/math/range_bearing_elevation.h>
-#include <snark/point_cloud/voxel_map.h>
-#include <snark/visiting/traits.h>
+#include <snark/point_cloud/detect_change.h>
+
 //#include <google/profiler.h>
+
+snark::voxel_map< int, 2 >::point_type resolution;
+static bool verbose;
 
 void usage( bool long_help = false )
 {
@@ -81,161 +83,6 @@ void usage( bool long_help = false )
     exit( 1 );
 }
 
-typedef snark::range_bearing_elevation point_t;
-
-//std::ostream& operator<<( std::ostream& os, const point_t& p ) { os << p.range() << "," << p.bearing() << "," << p.elevation(); return os; }
-
-static double abs_bearing_distance_( double m, double b ) // quick and dirty
-{
-    double m1 = m < 0 ? m + ( M_PI * 2 ) : m;
-    double b1 = b < 0 ? b + ( M_PI * 2 ) : b;
-    return std::abs( m1 - b1 );
-}
-
-static bool bearing_between_( double b, double min, double max )
-{
-    return comma::math::equal( abs_bearing_distance_( b, min ) + abs_bearing_distance_( b, max ), abs_bearing_distance_( min, max ) ); // quick and dirty: watch performance
-}
-
-static double bearing_min_( double m, double b )
-{
-    double m1 = m < 0 ? m + ( M_PI * 2 ) : m;
-    double b1 = b < 0 ? b + ( M_PI * 2 ) : b;
-    return comma::math::less( m1, b1 ) ? m : b;
-}
-
-static double bearing_max_( double m, double b )
-{
-    double m1 = m < 0 ? m + ( M_PI * 2 ) : m;
-    double b1 = b < 0 ? b + ( M_PI * 2 ) : b;
-    return comma::math::less( b1, m1 ) ? m : b;
-}
-
-static bool verbose;
-snark::voxel_map< int, 2 >::point_type resolution;
-
-struct cell
-{
-    struct entry
-    {
-        point_t point;
-        comma::uint64 index;
-        entry() {}
-        entry( const point_t& point, comma::uint64 index ) : point( point ), index( index ) {}
-    };
-
-    std::vector< entry > points;
-
-//     typedef snark::voxel_map< cell, 2 > grid_t;
-//
-//     enum { factor = 4 };
-//
-//     boost::array< boost::array< std::vector< entry >, 3 * factor >, 3 * factor > grid;
-//
-//     static grid_t::Index index( double b, double e )
-//     {
-//         grid_t::point_t p( b, e );
-//         static grid_t::point_t finer_resolution = resolution / factor; // quick and dirty
-//         const grid_t::Index& ri = grid_t::index_of( p, resolution );
-//         const grid_t::Index& fi = grid_t::index_of( p, finer_resolution );
-//         grid_t::Index i;
-//         i[0] = fi[0] - ri[0] * factor;
-//         i[1] = fi[1] - ri[1] * factor;
-//         return i;
-//     }
-//
-//     void add_to_grid( const entry& p )
-//     {
-//         const grid_t::Index& i = index( p.point.bearing, p.point.elevation );
-//         std::vector< entry >& v = grid[i[0]][i[1]];
-//         if( v.size() == v.capacity() ) { v.reserve( 512 ); } // quick and dirty
-//         v.push_back( p );
-//     }
-//
-//     const entry* trace_in_grid( const point_t& p, double threshold, boost::optional< double > range_threshold ) const
-//     {
-//         static const double threshold_square = threshold * threshold; // static: quick and dirty
-//         const entry* entry = NULL;
-//         boost::optional< point_t > min; // todo: quick and dirty, fix point_tRBE and use extents
-//         boost::optional< point_t > max; // todo: quick and dirty, fix point_tRBE and use extents
-//         const grid_t::Index& begin = index( p.bearing - threshold, p.elevation - threshold );
-//         const grid_t::Index& end = index( p.bearing + threshold, p.elevation + threshold );
-//         for( unsigned int b = begin[0]; b < ( unsigned int )( end[0] ); ++b )
-//         {
-//             for( unsigned int e = begin[1]; e < ( unsigned int )( end[1] ); ++b )
-//             {
-//                 const std::vector< entry >& v = grid[b][e];
-//                 for( std::size_t i = 0; i < v.size(); ++i )
-//                 {
-//                     double db = abs_bearing_distance_( p.bearing, v[i].point.bearing );
-//                     double de = p.elevation - v[i].point.elevation;
-//                     if( ( db * db + de * de ) > threshold_square ) { continue; }
-//                     if( range_threshold && v[i].point.range < ( p.range + *range_threshold ) ) { return NULL; }
-//                     if( !min || v[i].point.range < min->range ) { entry = &v[i]; }
-//                     if( min ) // todo: quick and dirty, fix point_tRBE and use extents
-//                     {
-//                         min->range = std::min( min->range, v[i].point.range );
-//                         min->bearing = bearing_min_( min->bearing, v[i].point.bearing );
-//                         min->elevation = std::min( min->elevation, v[i].point.elevation );
-//                         max->range = std::max( max->range, v[i].point.range );
-//                         max->bearing = bearing_max_( max->bearing, v[i].point.bearing );
-//                         max->elevation = std::max( max->elevation, v[i].point.elevation );
-//                     }
-//                     else
-//                     {
-//                         min = max = v[i].point;
-//                     }
-//                 }
-//             }
-//         }
-//         return    !min
-//                || !bearing_between_( p.bearing, min->bearing, max->bearing )
-//                || comma::math::less( p.elevation, min->elevation )
-//                || !comma::math::less( p.elevation, max->elevation ) ? NULL : entry;
-//     }
-
-    void add( const entry& p )
-    {
-        if( points.size() == points.capacity() ) { points.reserve( 2048 ); } // quick and dirty
-        points.push_back( p );
-    }
-
-    const entry* trace( const point_t& p, double threshold, boost::optional< double > range_threshold ) const
-    {
-        const entry* e = NULL;
-        static const double threshold_square = threshold * threshold; // static: quick and dirty
-        boost::optional< point_t > min;
-        boost::optional< point_t > max;
-        for( std::size_t i = 0; i < points.size(); ++i )
-        {
-            double db = abs_bearing_distance_( p.bearing(), points[i].point.bearing() );
-            double de = p.elevation() - points[i].point.elevation();
-            if( ( db * db + de * de ) > threshold_square ) { continue; }
-            if( range_threshold && points[i].point.range() < ( p.range() + *range_threshold ) ) { return NULL; }
-            if( min ) // todo: quick and dirty, fix point_tRBE and use extents
-            {
-                if( points[i].point.range() < min->range() )
-                {
-                    min->range( points[i].point.range() );
-                    e = &points[i];
-                }
-                min->bearing( bearing_min_( min->bearing(), points[i].point.bearing() ) );
-                min->elevation( std::min( min->elevation(), points[i].point.elevation() ) );
-                max->bearing( bearing_max_( max->bearing(), points[i].point.bearing() ) );
-                max->elevation( std::max( max->elevation(), points[i].point.elevation() ) );
-            }
-            else
-            {
-                e = &points[i];
-                min = max = points[i].point;
-            }
-        }
-        return    !min
-               || !bearing_between_( p.bearing(), min->bearing(), max->bearing() )
-               || !comma::math::less( min->elevation(), p.elevation() )
-               || !comma::math::less( p.elevation(), max->elevation() ) ? NULL : e;
-    }
-};
 
 int main( int argc, char** argv )
 {
