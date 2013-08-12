@@ -44,12 +44,6 @@ PyObject* partition_cfunc(PyObject *dummy, PyObject *args, PyObject *kwds)
             &resolution, &min_density, &min_points_per_voxel,
             &min_points_per_partition, &min_voxels_per_partition)) return NULL;
 
-    std::cout << resolution << std::endl;
-    std::cout << min_density << std::endl;
-    std::cout << min_points_per_voxel << std::endl;
-    std::cout << min_points_per_partition << std::endl;
-    std::cout << min_voxels_per_partition << std::endl;
-
     arr1 = PyArray_FROM_OTF(arg1, NPY_DOUBLE, NPY_IN_ARRAY);
     if (arr1 == NULL) return NULL;
 
@@ -81,7 +75,7 @@ PyObject* partition_cfunc(PyObject *dummy, PyObject *args, PyObject *kwds)
         points[i].partition = &partition.insert( points[i].point );
     }
 
-    partition.commit(min_voxels_per_partition, min_points_per_partition, 1);
+    partition.commit(min_voxels_per_partition, min_points_per_partition, 0);
 
     npy_intp dims[1];
     dims[0] = points.size();
