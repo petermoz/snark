@@ -1,10 +1,12 @@
 #include <Python.h>
+#define PY_ARRAY_UNIQUE_SYMBOL _snark_point_cloud_ARRAY_API
+#define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 #include <snark/point_cloud/detect_change.h>
+#include <snark/point_cloud/python/py_detect_change.h>
 
 
-static PyObject*
-detect_change_cfunc(PyObject *dummy, PyObject *args) 
+PyObject* detect_change_cfunc(PyObject *dummy, PyObject *args) 
 {
     PyObject *arg1=NULL, *arg2=NULL, *out=NULL;
     PyObject *arr1=NULL, *arr2=NULL, *oarr=NULL;
@@ -77,18 +79,4 @@ detect_change_cfunc(PyObject *dummy, PyObject *args)
     PyArray_XDECREF_ERR((PyArrayObject*)oarr);
     return NULL; 
 }
-
-
-static PyMethodDef mymethods[] = {
-    { "detect_change", detect_change_cfunc, METH_VARARGS, "Ya"},
-    {NULL, NULL, 0, NULL} /* Sentinel */
-};
-
-
-PyMODINIT_FUNC
-initdetect_change(void) {
-    (void)Py_InitModule("detect_change", mymethods);
-    import_array();
-}
-
 
