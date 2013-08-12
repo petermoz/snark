@@ -4,11 +4,22 @@
 #include <snark/point_cloud/python/py_detect_change.h>
 #include <snark/point_cloud/python/py_partition.h>
 
+const char* detect_change_doc = \
+"Equivalent of points-detect-change\n" 
+"\n"
+"Input: reference (range, bearing, elevation) -- (N, 3) np.ndarray\n"
+"       scan (range, bearing, elevation) -- (M, 3) np.ndarray\n"
+"\n"
+"Parameters:\n"
+"    angle_threshold\n"
+"    range_threshold\n";
+
 
 const char* partition_doc = \
 "Equivalent of points to paritions\n"
 "\n"
 "Inputs: points -- (N, 3) np.ndarray\n"
+"\n"
 "Parameters:\n"
 "    resolution\n"
 "    min_density\n"
@@ -17,8 +28,9 @@ const char* partition_doc = \
 "    min_voxels_per_partition\n";
 
 
+
 static PyMethodDef mymethods[] = {
-    { "detect_change", detect_change_cfunc, METH_VARARGS, ""},
+    { "detect_change", (PyCFunction)detect_change_cfunc, METH_VARARGS|METH_KEYWORDS, detect_change_doc},
     { "partition", (PyCFunction)partition_cfunc, METH_VARARGS|METH_KEYWORDS, partition_doc},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
