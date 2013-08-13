@@ -1,3 +1,37 @@
+// This file is part of snark, a generic and flexible library for robotics research
+// Copyright (c) 2011 The University of Sydney
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+// 3. All advertising materials mentioning features or use of this software
+//    must display the following acknowledgement:
+//    This product includes software developed by the The University of Sydney.
+// 4. Neither the name of the The University of Sydney nor the
+//    names of its contributors may be used to endorse or promote products
+//    derived from this software without specific prior written permission.
+//
+// NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+// GRANTED BY THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+// HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+// BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+// OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+// IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+/// @author peter morton
+
 #include <Python.h>
 #define PY_ARRAY_UNIQUE_SYMBOL _snark_point_cloud_ARRAY_API
 #define NO_IMPORT_ARRAY
@@ -6,12 +40,14 @@
 #include <snark/point_cloud/python/py_detect_change.h>
 
 
+// This function reimplements the functionality of points-detect-change
 PyObject* detect_change_cfunc(PyObject *dummy, PyObject *args, PyObject *kwds)
 {
     PyObject *arg1=NULL, *arg2=NULL;
     PyObject *arr1=NULL, *arr2=NULL;
 
-    double angle_threshold = 0.0157;
+    // Default values.
+    double angle_threshold = 0.0157; // 0.9 degrees.
     double range_threshold = 0.15;
 
     static char *kwlist[] = {
@@ -22,16 +58,18 @@ PyObject* detect_change_cfunc(PyObject *dummy, PyObject *args, PyObject *kwds)
         NULL
     };
 
+    // Parse input arrays and keyword parameters.
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|dd", kwlist,
                 &PyArray_Type, &arg1, &PyArray_Type, &arg2,
                 &angle_threshold, &range_threshold)) return NULL;
 
+    // Convert inputs into numpy arrays.
     arr1 = PyArray_FROM_OTF(arg1, NPY_DOUBLE, NPY_IN_ARRAY);
     if (arr1 == NULL) return NULL;
     arr2 = PyArray_FROM_OTF(arg2, NPY_DOUBLE, NPY_IN_ARRAY);
     if (arr2 == NULL) { Py_XDECREF(arr1); return NULL; }
 
-    /* code that makes use of arguments */
+    // Define the voxel grid.
     typedef snark::voxel_map<cell, 2 > grid_t;
     snark::voxel_map< int, 2 >::point_type resolution;
     resolution = grid_t::point_type( angle_threshold, angle_threshold );
