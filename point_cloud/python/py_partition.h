@@ -34,37 +34,17 @@
 
 #include <boost/python.hpp>
 #include <boost/numpy.hpp>
-#include <snark/point_cloud/python/py_detect_change.h>
-#include <snark/point_cloud/python/py_partition.h>
+#include <limits.h>
+
+#define ID_INVALID UINT_MAX
 
 namespace bp = boost::python;
 namespace bn = boost::numpy;
 
-BOOST_PYTHON_MODULE(snark_py_point_cloud)
-{
-    bn::initialize();
-
-    // Change detection.
-    bp::class_<ChangeDetector>("ChangeDetector",
-            bp::init<bn::ndarray, double, double>(
-                (bp::arg("reference"), bp::arg("angle_threshold"), bp::arg("range_threshold"))
-            ))
-        .def("get_changes", &ChangeDetector::GetChanges, bp::arg("scan"))
-    ;
-
-    bp::def("detect_change", detect_change,
-            (bp::arg("reference"), bp::arg("scan"), bp::arg("angle_threshold"), bp::arg("range_threshold")));
-
-    
-    // Partitioning.
-    bp::def("partition", partition,
-            (bp::arg("scan"), 
-             bp::arg("resolution") = 0.2,
-             bp::arg("min_density") = 0.0,
-             bp::arg("min_id") = 0,
-             bp::arg("min_points_per_voxel") = 1,
-             bp::arg("min_points_per_partition") = 1,
-             bp::arg("min_voxels_per_partition") = 1));
-    bp::scope().attr("ID_INVALID") = ID_INVALID;
-}
-
+bn::ndarray partition(bn::ndarray scan, 
+                      double resolution = 0.2,
+                      double min_density = 0.0,
+                      int min_id = 0,
+                      int min_points_per_voxel = 1,
+                      int min_points_per_partition = 1,
+                      int min_voxels_per_partition = 1);
