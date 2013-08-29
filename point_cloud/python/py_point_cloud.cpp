@@ -45,7 +45,8 @@ BOOST_PYTHON_MODULE(snark_py_point_cloud)
     bn::initialize();
 
     // Change detection.
-    bp::class_<ChangeDetector>("ChangeDetector",
+    bp::class_<ChangeDetector,
+       boost::shared_ptr<ChangeDetector>, boost::noncopyable>("ChangeDetector",
             bp::init<bn::ndarray, double, double>(
                 (bp::arg("reference"), bp::arg("angle_threshold"), bp::arg("range_threshold"))
             ))

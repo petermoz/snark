@@ -43,6 +43,10 @@ typedef snark::voxel_map<cell, 2 > grid_t;
 
 class ChangeDetector
 {
+private:
+    ChangeDetector(const ChangeDetector& other);
+    ChangeDetector& operator=(const ChangeDetector& other);
+
 public:
     ChangeDetector(const bn::ndarray& ref, double angle_threshold, 
                    double range_threshold);

@@ -31,7 +31,7 @@ double bearing_max_( double m, double b )
 
 void cell::add( const entry& p )
 {
-    if( points.size() == points.capacity() ) { points.reserve( 2048 ); } // quick and dirty
+    if( points.size() == points.capacity() ) { points.reserve( 64 ); } // quick and dirty
     points.push_back( p );
 }
 
