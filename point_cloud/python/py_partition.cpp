@@ -48,14 +48,14 @@ struct InputPoint
 
 // This reimplements points-to-partitions 
 bn::ndarray partition(bn::ndarray scan, 
-                      double resolution,
+                      bp::list resolution,
                       double min_density,
                       int min_id,
                       int min_points_per_voxel,
                       int min_points_per_partition,
                       int min_voxels_per_partition) {
 
-    // Check that input is as expected.
+    // Check that scan input is as expected.
     if(scan.get_dtype() != bn::dtype::get_builtin<double>()) {
         PyErr_SetString(PyExc_TypeError, "Incorrect array data type (expected double)");
         bp::throw_error_already_set();
@@ -95,9 +95,11 @@ bn::ndarray partition(bn::ndarray scan,
 
     // Insert all points into the paritioning grid.
     Eigen::Vector3d resolution3;
-    resolution3 << resolution, resolution, resolution;
+    resolution3 << bp::extract<double>(resolution[0]),
+                   bp::extract<double>(resolution[1]),
+                   bp::extract<double>(resolution[2]);
     snark::partition partition(*extents, resolution3, min_points_per_voxel);
-    for(int i = 0; i < points.size(); ++i)
+    for(size_t i = 0; i < points.size(); ++i)
     {
         points[i].partition = &partition.insert(points[i].point);
     }

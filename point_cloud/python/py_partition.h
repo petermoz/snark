@@ -42,7 +42,7 @@ namespace bp = boost::python;
 namespace bn = boost::numpy;
 
 bn::ndarray partition(bn::ndarray scan, 
-                      double resolution = 0.2,
+                      bp::list resolution,
                       double min_density = 0.0,
                       int min_id = 0,
                       int min_points_per_voxel = 1,

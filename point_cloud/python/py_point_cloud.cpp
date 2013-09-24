@@ -60,7 +60,7 @@ BOOST_PYTHON_MODULE(snark_py_point_cloud)
     // Partitioning.
     bp::def("partition", partition,
             (bp::arg("scan"), 
-             bp::arg("resolution") = 0.2,
+             bp::arg("resolution"),
              bp::arg("min_density") = 0.0,
              bp::arg("min_id") = 0,
              bp::arg("min_points_per_voxel") = 1,

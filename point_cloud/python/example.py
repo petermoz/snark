@@ -8,12 +8,12 @@ Partitioning Example
 >>> p1 = np.random.rand(100, 3)
 >>> p2 = np.random.rand(5, 3) + [0, 5, 0]
 >>> p = np.vstack((p1, p2))
->>> ids = snark.partition(p, resolution=1.0)
+>>> ids = snark.partition(p, [1.0, 1.0, 1.0])
 >>> (p[ids == 0] == p1).all()
 True
 >>> (p[ids == 1] == p2).all()
 True
->>> ids = snark.partition(p, min_points_per_partition=10)
+>>> ids = snark.partition(p, [1.0, 1.0, 1.0], min_points_per_partition=10)
 >>> (ids[-5:] == snark.ID_INVALID).all()
 True
 
