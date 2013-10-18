@@ -50,7 +50,7 @@ BOOST_PYTHON_MODULE(snark_py_point_cloud)
             bp::init<bn::ndarray, double, double>(
                 (bp::arg("reference"), bp::arg("angle_threshold"), bp::arg("range_threshold"))
             ))
-        .def("get_changes", &ChangeDetector::GetChanges, bp::arg("scan"))
+        .def("get_changes", &ChangeDetector::GetChanges, (bp::arg("scan"), bp::arg("invert")=false))
     ;
 
     bp::def("detect_change", detect_change,

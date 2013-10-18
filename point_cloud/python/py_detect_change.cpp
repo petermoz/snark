@@ -80,7 +80,7 @@ ChangeDetector::ChangeDetector(const bn::ndarray& ref, double angle_threshold,
     }
 }
 
-bn::ndarray ChangeDetector::GetChanges(const bn::ndarray& scan) 
+bn::ndarray ChangeDetector::GetChanges(const bn::ndarray& scan, bool invert)
 {
     // Check that input is as expected.
     if (scan.get_dtype() != bn::dtype::get_builtin<double>()) {
@@ -114,7 +114,7 @@ bn::ndarray ChangeDetector::GetChanges(const bn::ndarray& scan)
         if( it == grid_.end() ) { 
             change = false; 
         } else {
-            const cell::entry* q = it->second.trace( p, angle_threshold_, range_threshold_ );
+            const cell::entry* q = it->second.trace( p, angle_threshold_, range_threshold_, invert );
             if( !q ) { change = false; }
         }
         changes[pt_idx] = change;

@@ -51,7 +51,7 @@ public:
     ChangeDetector(const bn::ndarray& ref, double angle_threshold, 
                    double range_threshold);
 
-    bn::ndarray GetChanges(const bn::ndarray& scan);
+    bn::ndarray GetChanges(const bn::ndarray& scan, bool invert=false);
 
 private:
     grid_t grid_;

@@ -22,5 +22,5 @@ struct cell {
     std::vector< entry > points;
    
     void add( const entry& p );
-    const entry* trace( const point_t& p, double threshold, boost::optional< double > range_threshold ) const;
+    const entry* trace( const point_t& p, double threshold, boost::optional< double > range_threshold, bool invert=false) const;
 };

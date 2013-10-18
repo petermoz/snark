@@ -35,7 +35,7 @@ void cell::add( const entry& p )
     points.push_back( p );
 }
 
-const cell::entry* cell::trace( const point_t& p, double threshold, boost::optional< double > range_threshold ) const
+const cell::entry* cell::trace( const point_t& p, double threshold, boost::optional< double > range_threshold, bool invert) const
 {
     const entry* e = NULL;
     static const double threshold_square = threshold * threshold; // static: quick and dirty
@@ -46,13 +46,28 @@ const cell::entry* cell::trace( const point_t& p, double threshold, boost::optio
         double db = abs_bearing_distance_( p.bearing(), points[i].point.bearing() );
         double de = p.elevation() - points[i].point.elevation();
         if( ( db * db + de * de ) > threshold_square ) { continue; }
-        if( range_threshold && points[i].point.range() < ( p.range() + *range_threshold ) ) { return NULL; }
+
+        if(!invert) {
+            if( range_threshold && points[i].point.range() < ( p.range() + *range_threshold ) ) { return NULL; }
+        } else {
+            if( range_threshold && points[i].point.range() > ( p.range() - *range_threshold ) ) { return NULL; }
+        }
+
         if( min ) // todo: quick and dirty, fix point_tRBE and use extents
         {
-            if( points[i].point.range() < min->range() )
-            {
-                min->range( points[i].point.range() );
-                e = &points[i];
+            if(!invert) {
+                if( points[i].point.range() < min->range() )
+                {
+                    min->range( points[i].point.range() );
+                    e = &points[i];
+                }
+            } else {
+                // Look for "definitely occluded" points 
+                if( points[i].point.range() > min->range() )
+                {
+                    min->range( points[i].point.range() );
+                    e = &points[i];
+                }
             }
             min->bearing( bearing_min_( min->bearing(), points[i].point.bearing() ) );
             min->elevation( std::min( min->elevation(), points[i].point.elevation() ) );
